@@ -269,7 +269,7 @@ def configure_clp_pex_options(parser):
     group.add_argument(
         "--umask",
         dest="umask",
-        default=0,
+        default=0o022,
         help="Unix file permission to mask out.",
     )
 
