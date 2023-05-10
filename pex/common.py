@@ -648,7 +648,8 @@ class Chroot(object):
                         yield full_path, path
                         continue
 
-                    for root, _, files in os.walk(full_path):
+                    for root, dirs, files in os.walk(full_path):
+                        dirs.sort()
                         for f in sorted(files):
                             if exclude_file(f):
                                 continue
