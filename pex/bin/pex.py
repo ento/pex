@@ -266,6 +266,13 @@ def configure_clp_pex_options(parser):
         ),
     )
 
+    group.add_argument(
+        "--umask",
+        dest="umask",
+        default=0,
+        help="Unix file permission to mask out.",
+    )
+
     runtime_mode = group.add_mutually_exclusive_group()
     runtime_mode.add_argument(
         "--unzip",
@@ -1350,6 +1357,7 @@ def do_main(
             layout=options.layout,
             compress=options.compress,
             check=options.check,
+            mode_mask=options.umask,
         )
         if options.seed != Seed.NONE:
             seed_info = seed_cache(

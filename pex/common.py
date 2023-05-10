@@ -177,7 +177,7 @@ class PermPreservingZipFile(zipfile.ZipFile, object):
         pass
 
     @classmethod
-    def zip_entry_from_file(cls, filename, arcname=None, date_time=None):
+    def zip_entry_from_file(cls, filename, arcname=None, date_time=None, mode_mask=0):
         """Construct a ZipEntry for a file on the filesystem.
 
         Usually a similar `zip_info_from_file` method is provided by `ZipInfo`, but it is not
@@ -197,7 +197,7 @@ class PermPreservingZipFile(zipfile.ZipFile, object):
         if date_time is None:
             date_time = time.localtime(st.st_mtime)
         zinfo = zipfile.ZipInfo(filename=arcname, date_time=date_time[:6])
-        zinfo.external_attr = (st.st_mode & 0xFFFF) << 16  # Unix attributes
+        zinfo.external_attr = (st.st_mode & 0xFFFF - mode_mask) << 16  # Unix attributes
         if isdir:
             zinfo.file_size = 0
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
@@ -683,6 +683,7 @@ class Chroot(object):
         strip_prefix=None,  # type: Optional[str]
         labels=None,  # type: Optional[Iterable[str]]
         compress=True,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
 
@@ -708,6 +709,7 @@ class Chroot(object):
                     date_time=DETERMINISTIC_DATETIME.timetuple()
                     if deterministic_timestamp
                     else None,
+                    mode_mask=mode_mask,
                 )
                 compress_file = compress and self._compress_by_file.get(arcname, True)
                 compression = zipfile.ZIP_DEFLATED if compress_file else zipfile.ZIP_STORED

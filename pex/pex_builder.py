@@ -612,6 +612,7 @@ class PEXBuilder(object):
         layout=Layout.ZIPAPP,  # type: Layout.Value
         compress=True,  # type: bool
         check=Check.NONE,  # type: Check.Value
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
         """Package the PEX application.
@@ -655,6 +656,7 @@ class PEXBuilder(object):
                 deterministic_timestamp=deterministic_timestamp,
                 compress=compress,
                 bytecode_compile=bytecode_compile,
+                mode_mask=mode_mask,
             )
         else:
             self._build_zipapp(
@@ -662,6 +664,7 @@ class PEXBuilder(object):
                 deterministic_timestamp=deterministic_timestamp,
                 compress=compress,
                 bytecode_compile=bytecode_compile,
+                mode_mask=mode_mask,
             )
 
         if os.path.isdir(path):
@@ -696,6 +699,7 @@ class PEXBuilder(object):
         deterministic_timestamp=False,  # type: bool
         compress=True,  # type: bool
         bytecode_compile=False,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
 
@@ -738,6 +742,7 @@ class PEXBuilder(object):
                         strip_prefix=pex_info.bootstrap,
                         labels=("bootstrap",),
                         compress=compress,
+                        mode_mask=mode_mask,
                     )
         safe_copy(
             os.path.join(cached_bootstrap_zip_dir, pex_info.bootstrap),
@@ -775,6 +780,7 @@ class PEXBuilder(object):
                                     strip_prefix=os.path.join(pex_info.internal_cache, location),
                                     labels=(location,),
                                     compress=compress,
+                                    mode_mask=mode_mask,
                                 )
                         safe_copy(os.path.join(cached_installed_wheel_zip_dir, location), dest)
 
@@ -784,6 +790,7 @@ class PEXBuilder(object):
         deterministic_timestamp=False,  # type: bool
         compress=True,  # type: bool
         bytecode_compile=False,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
         with safe_open(filename, "wb") as pexfile:
@@ -805,5 +812,6 @@ class PEXBuilder(object):
                 # racy.
                 exclude_file=is_pyc_temporary_file if bytecode_compile else is_pyc_file,
                 compress=compress,
+                mode_mask=mode_mask,
             )
         chmod_plus_x(filename)
