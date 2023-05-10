@@ -169,6 +169,10 @@ class PermPreservingZipFile(zipfile.ZipFile, object):
     class ZipEntry(namedtuple("ZipEntry", ["info", "data"])):
         pass
 
+    def __init__(self, *args, **kwargs):
+        self._mode_mask = kwargs.pop("mode_mask", 0)
+        super(PermPreservingZipFile, self).__init__(*args, **kwargs)
+
     @classmethod
     def zip_entry_from_file(cls, filename, arcname=None, date_time=None):
         """Construct a ZipEntry for a file on the filesystem.
@@ -190,7 +194,7 @@ class PermPreservingZipFile(zipfile.ZipFile, object):
         if date_time is None:
             date_time = time.localtime(st.st_mtime)
         zinfo = zipfile.ZipInfo(filename=arcname, date_time=date_time[:6])
-        zinfo.external_attr = (st.st_mode & 0xFFFF) << 16  # Unix attributes
+        zinfo.external_attr = (st.st_mode & 0xFFFF - self._mode_mask) << 16  # Unix attributes
         if isdir:
             zinfo.file_size = 0
             zinfo.external_attr |= 0x10  # MS-DOS directory flag
@@ -592,6 +596,7 @@ class Chroot(object):
         strip_prefix=None,  # type: Optional[str]
         labels=None,  # type: Optional[Iterable[str]]
         compress=True,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
 
@@ -603,7 +608,7 @@ class Chroot(object):
             selected_files = self.files()
 
         compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-        with open_zip(filename, mode, compression) as zf:
+        with open_zip(filename, mode, compression, mode_mask) as zf:
 
             def write_entry(
                 filename,  # type: str
