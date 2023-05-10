@@ -581,8 +581,9 @@ class PEXBuilder(object):
         for root, dirs, files in os.walk(package_root):
             if root == package_root:
                 dirs[:] = bootstrap_packages
+            dirs.sort()
 
-            for f in filter_pyc_files(files):
+            for f in sorted(filter_pyc_files(files)):
                 if f.endswith("testing.py"):
                     continue
                 abs_src = os.path.join(root, f)
