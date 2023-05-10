@@ -155,14 +155,14 @@ def __maybe_run_venv__(pex, pex_root, pex_path):
 
   venv_dir = venv_dir(
     pex_file=pex,
-    pex_root=pex_root, 
+    pex_root=pex_root,
     pex_hash={pex_hash!r},
     has_interpreter_constraints={has_interpreter_constraints!r},
     pex_path=pex_path,
   )
   venv_pex = os.path.join(venv_dir, 'pex')
   if not __execute__ or not is_exe(venv_pex):
-    # Code in bootstrap_pex will (re)create the venv after selecting the correct interpreter. 
+    # Code in bootstrap_pex will (re)create the venv after selecting the correct interpreter.
     return venv_dir
 
   TRACER.log('Executing venv PEX for {{}} at {{}}'.format(pex, venv_pex))
@@ -681,6 +681,7 @@ class PEXBuilder(object):
         layout=Layout.ZIPAPP,  # type: Layout.Value
         compress=True,  # type: bool
         check=Check.NONE,  # type: Check.Value
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
         """Package the PEX application.
@@ -719,10 +720,11 @@ class PEXBuilder(object):
                 dirname=tmp_pex,
                 deterministic_timestamp=deterministic_timestamp,
                 compress=compress,
+                mode_mask=mode_mask,
             )
         else:
             self._build_zipapp(
-                filename=tmp_pex, deterministic_timestamp=deterministic_timestamp, compress=compress
+                filename=tmp_pex, deterministic_timestamp=deterministic_timestamp, compress=compress, mode_mask=mode_mask
             )
 
         if os.path.isdir(path):
@@ -756,6 +758,7 @@ class PEXBuilder(object):
         dirname,  # type: str
         deterministic_timestamp=False,  # type: bool
         compress=True,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
 
@@ -798,6 +801,7 @@ class PEXBuilder(object):
                     strip_prefix=pex_info.bootstrap,
                     labels=("bootstrap",),
                     compress=compress,
+                    mode_mask=mode_mask,
                 )
         safe_copy(
             os.path.join(cached_bootstrap_zip_dir, pex_info.bootstrap),
@@ -822,6 +826,7 @@ class PEXBuilder(object):
                             strip_prefix=os.path.join(pex_info.internal_cache, location),
                             labels=(location,),
                             compress=compress,
+                            mode_mask=mode_mask,
                         )
                 safe_copy(
                     os.path.join(cached_installed_wheel_zip_dir, location),
@@ -833,6 +838,7 @@ class PEXBuilder(object):
         filename,  # type: str
         deterministic_timestamp=False,  # type: bool
         compress=True,  # type: bool
+        mode_mask=0,  # type: int
     ):
         # type: (...) -> None
         with safe_open(filename, "wb") as pexfile:
@@ -854,5 +860,6 @@ class PEXBuilder(object):
                 # racy.
                 exclude_file=is_pyc_temporary_file,
                 compress=compress,
+                mode_mask=mode_mask,
             )
         chmod_plus_x(filename)
